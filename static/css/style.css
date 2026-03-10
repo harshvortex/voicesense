@@ -1033,3 +1033,59 @@ footer a:hover {
         padding: 40px 16px
     }
 }
+
+/* ── Demo mode ─────────────────────────────────────────────────────────────── */
+.demo-banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 10px 20px;
+    background: linear-gradient(90deg, rgba(168, 85, 247, 0.15), rgba(76, 159, 255, 0.15));
+    border-bottom: 1px solid rgba(168, 85, 247, 0.2);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    font-size: 12px;
+    color: var(--text-dim);
+    animation: fadeIn 0.5s ease;
+}
+
+.demo-banner a {
+    color: var(--accent);
+    text-decoration: underline;
+}
+
+.demo-close {
+    position: absolute;
+    right: 16px;
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 16px;
+    transition: color 0.2s;
+}
+
+.demo-close:hover {
+    color: var(--text);
+}
+
+.demo-result-badge {
+    text-align: center;
+    padding: 12px 20px;
+    margin-bottom: 16px;
+    background: rgba(168, 85, 247, 0.06);
+    border: 1px solid rgba(168, 85, 247, 0.15);
+    border-radius: 12px;
+    font-size: 12px;
+    color: var(--muted2);
+    animation: fadeIn 0.4s ease;
+}
+
+.demo-result-badge a {
+    color: var(--accent);
+    text-decoration: underline;
+}

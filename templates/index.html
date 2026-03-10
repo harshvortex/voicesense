@@ -1,310 +1,348 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <meta name="description" content="VoiceSense — Upload audio and get instant AI-powered transcription and sentiment analysis. Runs 100% locally."/>
-  <meta name="keywords" content="voice analysis, sentiment analysis, audio transcription, whisper, AI, NLP"/>
-  <meta name="author" content="harshvortex"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description"
+    content="VoiceSense — Upload audio and get instant AI-powered transcription and sentiment analysis. Runs 100% locally." />
+  <meta name="keywords" content="voice analysis, sentiment analysis, audio transcription, whisper, AI, NLP" />
+  <meta name="author" content="harshvortex" />
   <title>VoiceSense — AI Audio Intelligence</title>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
 </head>
+
 <body>
 
-<div class="bg-grid"></div>
-<div class="bg-orb orb-a"></div>
-<div class="bg-orb orb-b"></div>
-<div class="bg-orb orb-c"></div>
+  <div class="bg-grid"></div>
+  <div class="bg-orb orb-a"></div>
+  <div class="bg-orb orb-b"></div>
+  <div class="bg-orb orb-c"></div>
 
-<div class="page">
+  {% if demo_mode %}
+  <div class="demo-banner" id="demoBanner">
+    <span>🎭</span>
+    <span><strong>Demo Mode</strong> — Upload any audio file to see a simulated analysis. <a
+        href="https://github.com/harshvortex/voicesense" target="_blank">Run locally</a> for real AI processing.</span>
+    <span class="demo-close" onclick="document.getElementById('demoBanner').style.display='none'">✕</span>
+  </div>
+  {% endif %}
 
-  <!-- ── Header ── -->
-  <header>
-    <div class="pill"><span class="pill-dot"></span>AI-Powered · Runs Locally</div>
-    <h1>VoiceSense</h1>
-    <p class="tagline">Upload any audio file — get instant transcription and deep sentiment analysis powered by AI</p>
-    <div class="stack-badges">
-      <span class="stack-badge">Flask</span>
-      <span class="stack-badge">OpenAI Whisper</span>
-      <span class="stack-badge">HuggingFace</span>
-      <span class="stack-badge">Python 3.11</span>
-      <span class="stack-badge">Docker Ready</span>
-    </div>
-  </header>
+  <div class="page">
 
-  <!-- ── API callout ── -->
-  <div class="api-callout">
-    <span class="api-icon">⚡</span>
-    <div class="api-content">
-      <div class="api-title">REST API Available</div>
-      <div class="api-desc">
-        POST to <code>/analyze</code> with <code>multipart/form-data</code> field <code>audio</code>.
-        Returns JSON with transcription, sentiment, confidence, language &amp; word count.
+    <!-- ── Header ── -->
+    <header>
+      <div class="pill"><span class="pill-dot"></span>AI-Powered · {{ 'Demo Mode' if demo_mode else 'Runs Locally' }}
+      </div>
+      <h1>VoiceSense</h1>
+      <p class="tagline">Upload any audio file — get instant transcription and deep sentiment analysis powered by AI</p>
+      <div class="stack-badges">
+        <span class="stack-badge">Flask</span>
+        <span class="stack-badge">OpenAI Whisper</span>
+        <span class="stack-badge">HuggingFace</span>
+        <span class="stack-badge">Python 3.11</span>
+        <span class="stack-badge">Docker Ready</span>
+      </div>
+    </header>
+
+    <!-- ── API callout ── -->
+    <div class="api-callout">
+      <span class="api-icon">⚡</span>
+      <div class="api-content">
+        <div class="api-title">REST API Available</div>
+        <div class="api-desc">
+          POST to <code>/analyze</code> with <code>multipart/form-data</code> field <code>audio</code>.
+          Returns JSON with transcription, sentiment, confidence, language &amp; word count.
+        </div>
       </div>
     </div>
+
+    <!-- ── Upload card ── -->
+    <div class="card" id="uploadCard">
+      <p class="sec-label">Upload Audio</p>
+
+      <div class="drop-zone" id="dropZone" onclick="document.getElementById('audioInput').click()">
+        <div class="drop-icon">🎙️</div>
+        <div class="drop-title">Drop your audio here</div>
+        <p class="drop-hint">
+          Click to browse · drag &amp; drop supported<br>
+          MP3 · WAV · MP4 · M4A · OGG · FLAC · WEBM · WMA &nbsp;|&nbsp; up to 50 MB
+        </p>
+      </div>
+
+      <div class="file-chip" id="fileChip">
+        <span class="chip-icon">🎵</span>
+        <span class="chip-name" id="chipName">—</span>
+        <span class="chip-size" id="chipSize">—</span>
+        <span class="chip-rm" onclick="clearFile()">✕</span>
+      </div>
+
+      <input type="file" id="audioInput" accept=".mp3,.wav,.mp4,.m4a,.ogg,.flac,.webm,.wma">
+
+      <div class="err-box" id="errBox"></div>
+
+      <button class="btn-primary" id="analyzeBtn" onclick="runAnalysis()" disabled>
+        ⚡&nbsp;&nbsp;Analyze Audio
+      </button>
+    </div>
+
+    <!-- ── Loader ── -->
+    <div class="loader" id="loader">
+      <div class="loader-ring-wrap">
+        <div class="loader-ring"></div>
+        <div class="loader-ring-outer"></div>
+      </div>
+      <div class="loader-step" id="loaderStep">Uploading audio…</div>
+      <div class="waveform">
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+      </div>
+      <div class="loader-sub">This may take 15–40 seconds depending on file size and model</div>
+    </div>
+
+    <!-- ── Results ── -->
+    <div class="results" id="results">
+
+      <div class="demo-result-badge" id="demoResultBadge" style="display:none;">
+        🎭 This is simulated demo data — <a href="https://github.com/harshvortex/voicesense" target="_blank">run
+          locally</a> for real AI results
+      </div>
+
+      <p class="sec-label">Sentiment Analysis</p>
+      <div class="s-hero" id="sHero">
+        <span class="s-emoji" id="sEmoji">😐</span>
+        <div class="s-label" id="sLabel">—</div>
+        <div class="conf-meta">
+          <span>Model Confidence</span>
+          <span id="confPct">—</span>
+        </div>
+        <div class="conf-track">
+          <div class="conf-fill" id="confFill" style="width:0%"></div>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat">
+          <span class="stat-val" id="statWords">—</span>
+          <span class="stat-name">Words</span>
+        </div>
+        <div class="stat">
+          <span class="stat-val" id="statLang">—</span>
+          <span class="stat-name">Language</span>
+        </div>
+        <div class="stat">
+          <span class="stat-val" id="statConf">—</span>
+          <span class="stat-name">Confidence</span>
+        </div>
+        <div class="stat">
+          <span class="stat-val" id="statTime">—</span>
+          <span class="stat-name">Time</span>
+        </div>
+      </div>
+
+      <p class="sec-label">Transcription</p>
+      <div class="trans-box">
+        <p class="trans-text" id="transText">—</p>
+        <div class="action-buttons">
+          <button class="btn-copy" id="copyBtn" onclick="copyTranscript()">📋&nbsp; Copy transcript</button>
+          <button class="btn-download" onclick="downloadTranscript()">⬇&nbsp; Download .txt</button>
+        </div>
+      </div>
+
+      <button class="btn-ghost" onclick="resetApp()">↩&nbsp;&nbsp;Analyze another file</button>
+    </div>
+
+    <!-- ── Footer ── -->
+    <footer>
+      <div class="footer-links">
+        <a href="https://github.com/harshvortex/voicesense" target="_blank">GitHub</a>
+        <a href="/health">API Health</a>
+      </div>
+      <div class="footer-inner">
+        VoiceSense &nbsp;·&nbsp; Built with Flask · Whisper · HuggingFace Transformers
+      </div>
+    </footer>
+
   </div>
 
-  <!-- ── Upload card ── -->
-  <div class="card" id="uploadCard">
-    <p class="sec-label">Upload Audio</p>
+  <!-- ── Scripts ── -->
+  <script>
+    const audioInput = document.getElementById('audioInput');
+    const dropZone = document.getElementById('dropZone');
 
-    <div class="drop-zone" id="dropZone" onclick="document.getElementById('audioInput').click()">
-      <div class="drop-icon">🎙️</div>
-      <div class="drop-title">Drop your audio here</div>
-      <p class="drop-hint">
-        Click to browse · drag &amp; drop supported<br>
-        MP3 · WAV · MP4 · M4A · OGG · FLAC · WEBM · WMA &nbsp;|&nbsp; up to 50 MB
-      </p>
-    </div>
+    /* ── File handling ───────────────────────────────────────────────────────── */
+    audioInput.addEventListener('change', () => {
+      if (audioInput.files[0]) setFile(audioInput.files[0]);
+    });
 
-    <div class="file-chip" id="fileChip">
-      <span class="chip-icon">🎵</span>
-      <span class="chip-name" id="chipName">—</span>
-      <span class="chip-size" id="chipSize">—</span>
-      <span class="chip-rm" onclick="clearFile()">✕</span>
-    </div>
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('over'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('over'));
+    dropZone.addEventListener('drop', e => {
+      e.preventDefault(); dropZone.classList.remove('over');
+      if (e.dataTransfer.files[0]) setFile(e.dataTransfer.files[0]);
+    });
 
-    <input type="file" id="audioInput" accept=".mp3,.wav,.mp4,.m4a,.ogg,.flac,.webm,.wma">
+    function setFile(f) {
+      const dt = new DataTransfer(); dt.items.add(f); audioInput.files = dt.files;
+      document.getElementById('chipName').textContent = f.name;
+      document.getElementById('chipSize').textContent = fmtSize(f.size);
+      document.getElementById('fileChip').classList.add('show');
+      document.getElementById('analyzeBtn').disabled = false;
+      hideErr();
+    }
 
-    <div class="err-box" id="errBox"></div>
+    function clearFile() {
+      audioInput.value = '';
+      document.getElementById('fileChip').classList.remove('show');
+      document.getElementById('analyzeBtn').disabled = true;
+    }
 
-    <button class="btn-primary" id="analyzeBtn" onclick="runAnalysis()" disabled>
-      ⚡&nbsp;&nbsp;Analyze Audio
-    </button>
-  </div>
+    function fmtSize(b) {
+      if (b < 1024) return b + ' B';
+      if (b < 1048576) return (b / 1024).toFixed(1) + ' KB';
+      return (b / 1048576).toFixed(1) + ' MB';
+    }
 
-  <!-- ── Loader ── -->
-  <div class="loader" id="loader">
-    <div class="loader-ring-wrap">
-      <div class="loader-ring"></div>
-      <div class="loader-ring-outer"></div>
-    </div>
-    <div class="loader-step" id="loaderStep">Uploading audio…</div>
-    <div class="waveform">
-      <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
-      <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
-      <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
-      <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
-    </div>
-    <div class="loader-sub">This may take 15–40 seconds depending on file size and model</div>
-  </div>
+    /* ── Errors ──────────────────────────────────────────────────────────────── */
+    function showErr(msg) {
+      const el = document.getElementById('errBox');
+      el.textContent = '⚠  ' + msg; el.classList.add('show');
+    }
+    function hideErr() { document.getElementById('errBox').classList.remove('show'); }
 
-  <!-- ── Results ── -->
-  <div class="results" id="results">
+    /* ── Loader steps ────────────────────────────────────────────────────────── */
+    const STEPS = [
+      'Uploading audio…',
+      'Running Whisper transcription…',
+      'Running sentiment analysis…',
+      'Preparing results…',
+    ];
+    let _stepTimer, _stepIdx = 0;
 
-    <p class="sec-label">Sentiment Analysis</p>
-    <div class="s-hero" id="sHero">
-      <span class="s-emoji" id="sEmoji">😐</span>
-      <div class="s-label" id="sLabel">—</div>
-      <div class="conf-meta">
-        <span>Model Confidence</span>
-        <span id="confPct">—</span>
-      </div>
-      <div class="conf-track">
-        <div class="conf-fill" id="confFill" style="width:0%"></div>
-      </div>
-    </div>
+    function startLoader() {
+      _stepIdx = 0;
+      document.getElementById('loaderStep').textContent = STEPS[0];
+      _stepTimer = setInterval(() => {
+        _stepIdx = Math.min(_stepIdx + 1, STEPS.length - 1);
+        document.getElementById('loaderStep').textContent = STEPS[_stepIdx];
+      }, 5500);
+    }
+    function stopLoader() { clearInterval(_stepTimer); }
 
-    <div class="stats">
-      <div class="stat">
-        <span class="stat-val" id="statWords">—</span>
-        <span class="stat-name">Words</span>
-      </div>
-      <div class="stat">
-        <span class="stat-val" id="statLang">—</span>
-        <span class="stat-name">Language</span>
-      </div>
-      <div class="stat">
-        <span class="stat-val" id="statConf">—</span>
-        <span class="stat-name">Confidence</span>
-      </div>
-      <div class="stat">
-        <span class="stat-val" id="statTime">—</span>
-        <span class="stat-name">Time</span>
-      </div>
-    </div>
+    /* ── Analyze ─────────────────────────────────────────────────────────────── */
+    async function runAnalysis() {
+      if (!audioInput.files[0]) return;
+      hideErr();
 
-    <p class="sec-label">Transcription</p>
-    <div class="trans-box">
-      <p class="trans-text" id="transText">—</p>
-      <div class="action-buttons">
-        <button class="btn-copy" id="copyBtn" onclick="copyTranscript()">📋&nbsp; Copy transcript</button>
-        <button class="btn-download" onclick="downloadTranscript()">⬇&nbsp; Download .txt</button>
-      </div>
-    </div>
+      document.getElementById('uploadCard').style.display = 'none';
+      document.getElementById('results').classList.remove('show');
+      document.getElementById('loader').classList.add('show');
+      startLoader();
 
-    <button class="btn-ghost" onclick="resetApp()">↩&nbsp;&nbsp;Analyze another file</button>
-  </div>
+      const fd = new FormData();
+      fd.append('audio', audioInput.files[0]);
 
-  <!-- ── Footer ── -->
-  <footer>
-    <div class="footer-links">
-      <a href="https://github.com/harshvortex/voicesense" target="_blank">GitHub</a>
-      <a href="/health">API Health</a>
-    </div>
-    <div class="footer-inner">
-      VoiceSense &nbsp;·&nbsp; Built with Flask · Whisper · HuggingFace Transformers
-    </div>
-  </footer>
+      try {
+        const res = await fetch('/analyze', { method: 'POST', body: fd });
+        const data = await res.json();
+        stopLoader();
 
-</div>
+        if (!res.ok || data.error) {
+          document.getElementById('loader').classList.remove('show');
+          document.getElementById('uploadCard').style.display = 'block';
+          showErr(data.error || 'Something went wrong.');
+          return;
+        }
+        renderResults(data);
 
-<!-- ── Scripts ── -->
-<script>
-  const audioInput = document.getElementById('audioInput');
-  const dropZone   = document.getElementById('dropZone');
-
-  /* ── File handling ───────────────────────────────────────────────────────── */
-  audioInput.addEventListener('change', () => {
-    if (audioInput.files[0]) setFile(audioInput.files[0]);
-  });
-
-  dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('over'); });
-  dropZone.addEventListener('dragleave', ()  => dropZone.classList.remove('over'));
-  dropZone.addEventListener('drop', e => {
-    e.preventDefault(); dropZone.classList.remove('over');
-    if (e.dataTransfer.files[0]) setFile(e.dataTransfer.files[0]);
-  });
-
-  function setFile(f) {
-    const dt = new DataTransfer(); dt.items.add(f); audioInput.files = dt.files;
-    document.getElementById('chipName').textContent = f.name;
-    document.getElementById('chipSize').textContent = fmtSize(f.size);
-    document.getElementById('fileChip').classList.add('show');
-    document.getElementById('analyzeBtn').disabled = false;
-    hideErr();
-  }
-
-  function clearFile() {
-    audioInput.value = '';
-    document.getElementById('fileChip').classList.remove('show');
-    document.getElementById('analyzeBtn').disabled = true;
-  }
-
-  function fmtSize(b) {
-    if (b < 1024)    return b + ' B';
-    if (b < 1048576) return (b / 1024).toFixed(1) + ' KB';
-    return (b / 1048576).toFixed(1) + ' MB';
-  }
-
-  /* ── Errors ──────────────────────────────────────────────────────────────── */
-  function showErr(msg) {
-    const el = document.getElementById('errBox');
-    el.textContent = '⚠  ' + msg; el.classList.add('show');
-  }
-  function hideErr() { document.getElementById('errBox').classList.remove('show'); }
-
-  /* ── Loader steps ────────────────────────────────────────────────────────── */
-  const STEPS = [
-    'Uploading audio…',
-    'Running Whisper transcription…',
-    'Running sentiment analysis…',
-    'Preparing results…',
-  ];
-  let _stepTimer, _stepIdx = 0;
-
-  function startLoader() {
-    _stepIdx = 0;
-    document.getElementById('loaderStep').textContent = STEPS[0];
-    _stepTimer = setInterval(() => {
-      _stepIdx = Math.min(_stepIdx + 1, STEPS.length - 1);
-      document.getElementById('loaderStep').textContent = STEPS[_stepIdx];
-    }, 5500);
-  }
-  function stopLoader() { clearInterval(_stepTimer); }
-
-  /* ── Analyze ─────────────────────────────────────────────────────────────── */
-  async function runAnalysis() {
-    if (!audioInput.files[0]) return;
-    hideErr();
-
-    document.getElementById('uploadCard').style.display = 'none';
-    document.getElementById('results').classList.remove('show');
-    document.getElementById('loader').classList.add('show');
-    startLoader();
-
-    const fd = new FormData();
-    fd.append('audio', audioInput.files[0]);
-
-    try {
-      const res  = await fetch('/analyze', { method: 'POST', body: fd });
-      const data = await res.json();
-      stopLoader();
-
-      if (!res.ok || data.error) {
+      } catch (err) {
+        stopLoader();
         document.getElementById('loader').classList.remove('show');
         document.getElementById('uploadCard').style.display = 'block';
-        showErr(data.error || 'Something went wrong.');
-        return;
+        showErr('Network error — is the Flask server running on port 5000?');
       }
-      renderResults(data);
-
-    } catch (err) {
-      stopLoader();
-      document.getElementById('loader').classList.remove('show');
-      document.getElementById('uploadCard').style.display = 'block';
-      showErr('Network error — is the Flask server running on port 5000?');
     }
-  }
 
-  /* ── Render results ──────────────────────────────────────────────────────── */
-  function renderResults(d) {
-    document.getElementById('loader').classList.remove('show');
+    /* ── Render results ──────────────────────────────────────────────────────── */
+    function renderResults(d) {
+      document.getElementById('loader').classList.remove('show');
 
-    const label = (d.sentiment.label || 'NEUTRAL').toUpperCase();
-    const conf  = d.sentiment.confidence;
+      const label = (d.sentiment.label || 'NEUTRAL').toUpperCase();
+      const conf = d.sentiment.confidence;
 
-    const map = { POSITIVE: 'positive', NEGATIVE: 'negative', NEUTRAL: 'neutral' };
-    const emoji = { POSITIVE: '😊', NEGATIVE: '😟', NEUTRAL: '😐' };
+      const map = { POSITIVE: 'positive', NEGATIVE: 'negative', NEUTRAL: 'neutral' };
+      const emoji = { POSITIVE: '😊', NEGATIVE: '😟', NEUTRAL: '😐' };
 
-    const hero = document.getElementById('sHero');
-    hero.className = 's-hero ' + (map[label] || 'neutral');
-    document.getElementById('sEmoji').textContent = emoji[label] || '🤔';
-    document.getElementById('sLabel').textContent = label;
-    document.getElementById('confPct').textContent = conf + '%';
-    setTimeout(() => { document.getElementById('confFill').style.width = conf + '%'; }, 80);
+      const hero = document.getElementById('sHero');
+      hero.className = 's-hero ' + (map[label] || 'neutral');
+      document.getElementById('sEmoji').textContent = emoji[label] || '🤔';
+      document.getElementById('sLabel').textContent = label;
+      document.getElementById('confPct').textContent = conf + '%';
+      setTimeout(() => { document.getElementById('confFill').style.width = conf + '%'; }, 80);
 
-    document.getElementById('statWords').textContent = d.word_count;
-    document.getElementById('statLang').textContent  = d.language;
-    document.getElementById('statConf').textContent  = conf + '%';
-    document.getElementById('statTime').textContent  = d.processing_time || '—';
-    document.getElementById('transText').textContent  = d.transcription;
+      document.getElementById('statWords').textContent = d.word_count;
+      document.getElementById('statLang').textContent = d.language;
+      document.getElementById('statConf').textContent = conf + '%';
+      document.getElementById('statTime').textContent = d.processing_time || '—';
+      document.getElementById('transText').textContent = d.transcription;
 
-    document.getElementById('results').classList.add('show');
-  }
+      // Show demo badge if applicable
+      const demoBadge = document.getElementById('demoResultBadge');
+      if (d.demo) {
+        demoBadge.style.display = 'block';
+      } else {
+        demoBadge.style.display = 'none';
+      }
 
-  /* ── Copy ─────────────────────────────────────────────────────────────────── */
-  function copyTranscript() {
-    const text = document.getElementById('transText').textContent;
-    navigator.clipboard.writeText(text).then(() => {
-      const btn = document.getElementById('copyBtn');
-      btn.innerHTML = '✅&nbsp; Copied!'; btn.classList.add('copied');
-      setTimeout(() => { btn.innerHTML = '📋&nbsp; Copy transcript'; btn.classList.remove('copied'); }, 2500);
-    });
-  }
+      document.getElementById('results').classList.add('show');
+    }
 
-  /* ── Download ────────────────────────────────────────────────────────────── */
-  function downloadTranscript() {
-    const text = document.getElementById('transText').textContent;
-    const blob = new Blob([text], { type: 'text/plain' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'voicesense-transcript.txt';
-    a.click();
-    URL.revokeObjectURL(a.href);
-  }
+    /* ── Copy ─────────────────────────────────────────────────────────────────── */
+    function copyTranscript() {
+      const text = document.getElementById('transText').textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.getElementById('copyBtn');
+        btn.innerHTML = '✅&nbsp; Copied!'; btn.classList.add('copied');
+        setTimeout(() => { btn.innerHTML = '📋&nbsp; Copy transcript'; btn.classList.remove('copied'); }, 2500);
+      });
+    }
 
-  /* ── Reset ───────────────────────────────────────────────────────────────── */
-  function resetApp() {
-    document.getElementById('results').classList.remove('show');
-    document.getElementById('uploadCard').style.display = 'block';
-    document.getElementById('confFill').style.width = '0%';
-    clearFile(); hideErr();
-  }
-</script>
+    /* ── Download ────────────────────────────────────────────────────────────── */
+    function downloadTranscript() {
+      const text = document.getElementById('transText').textContent;
+      const blob = new Blob([text], { type: 'text/plain' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'voicesense-transcript.txt';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    /* ── Reset ───────────────────────────────────────────────────────────────── */
+    function resetApp() {
+      document.getElementById('results').classList.remove('show');
+      document.getElementById('uploadCard').style.display = 'block';
+      document.getElementById('confFill').style.width = '0%';
+      document.getElementById('demoResultBadge').style.display = 'none';
+      clearFile(); hideErr();
+    }
+  </script>
 </body>
+
 </html>

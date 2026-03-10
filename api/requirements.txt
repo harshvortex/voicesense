@@ -1,0 +1,4 @@
+# Lightweight deps for Vercel (no torch/whisper/transformers)
+flask>=3.0.0
+werkzeug>=3.0.0
+python-dotenv>=1.0.0
