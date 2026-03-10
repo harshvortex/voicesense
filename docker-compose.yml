@@ -1,0 +1,25 @@
+version: '3.9'
+
+services:
+  voicesense:
+    build: .
+    container_name: voicesense
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    environment:
+      - FLASK_ENV=production
+    volumes:
+      - huggingface_cache:/home/appuser/.cache/huggingface
+      - whisper_cache:/home/appuser/.cache/whisper
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health')" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  huggingface_cache:
+  whisper_cache:

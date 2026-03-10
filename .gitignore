@@ -1,0 +1,59 @@
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+*.whl
+
+# ── Virtual environments ──────────────────────────────────────────────────────
+venv/
+.venv/
+env/
+ENV/
+
+# ── Environment secrets ──────────────────────────────────────────────────────
+.env
+
+# ── Flask ─────────────────────────────────────────────────────────────────────
+instance/
+.webassets-cache
+
+# ── Model cache (large files) ────────────────────────────────────────────────
+*.pt
+*.bin
+*.safetensors
+~/.cache/whisper/
+~/.cache/huggingface/
+
+# ── Uploads / temp ────────────────────────────────────────────────────────────
+uploads/
+tmp/
+*.mp3
+*.wav
+*.mp4
+*.m4a
+*.ogg
+*.flac
+*.webm
+*.wma
+
+# ── Testing ───────────────────────────────────────────────────────────────────
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ── IDE ───────────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# ── OS ────────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
