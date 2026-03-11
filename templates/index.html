@@ -307,10 +307,16 @@
         renderResults(data);
 
       } catch (err) {
+        console.error('Analysis fetch error:', err);
         stopLoader();
         document.getElementById('loader').classList.remove('show');
         document.getElementById('uploadCard').style.display = 'block';
-        showErr('Network error — is the Flask server running on port 8000?');
+
+        if (window.location.protocol === 'file:') {
+          showErr('Cannot run analysis when opening index.html directly as a file. Please access via http://localhost:8000');
+        } else {
+          showErr('Network error — is the Flask server running on port 8000? Check console for details.');
+        }
       }
     }
 

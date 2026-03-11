@@ -343,12 +343,19 @@ def get_statistics():
 
 
 @app.route('/analyze', methods=['POST'])
-@auth_required
 def analyze():
-    """Analyze voice clip (authenticated)."""
+    """
+    Analyze voice clip.
+    Publicly accessible in DEMO_MODE for landing page.
+    Requires authentication in production/real mode.
+    """
     start = time.time()
     auth_manager = get_auth_manager()
     user = auth_manager.get_current_user()
+
+    # If not logged in and not in demo mode, require auth
+    if not user and not DEMO_MODE:
+        return jsonify({'error': 'Authentication required. Please login to analyze files.'}), 401
 
     if 'audio' not in request.files:
         return jsonify({'error': 'No audio file provided.'}), 400
@@ -455,5 +462,6 @@ def internal_error(e):
 # ── Entry point ───────────────────────────────────────────────────────────────
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8000))
-    debug = os.environ.get('FLASK_DEBUG', 'false').lower() == 'true'
+    debug = os.environ.get('FLASK_DEBUG', 'false').lower() == 'true' or os.environ.get('DEBUG', 'false').lower() == 'true'
+    print(f" * DEBUG: Starting VoiceSense on port {port} (env PORT={os.environ.get('PORT')})")
     app.run(host='0.0.0.0', port=port, debug=debug)
