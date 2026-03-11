@@ -19,16 +19,35 @@ Built with **Flask · OpenAI Whisper · HuggingFace Transformers**.
 
 ## ✨ Features
 
+### Core AI Features
 | Feature | Description |
 |---|---|
 | 🎙️ **Transcription** | OpenAI Whisper — `tiny` through `large` models |
 | 💬 **Sentiment Analysis** | DistilBERT fine-tuned on SST-2 (POSITIVE / NEGATIVE) |
 | 🌍 **Language Detection** | Automatic spoken-language identification |
 | 📊 **Confidence Score** | Know how sure the model is about its prediction |
+| 🔊 **Audio Formats** | MP3, WAV, M4A, AAC, OGG, FLAC, WebM, WMA |
+
+### User & Cloud Features
+| Feature | Description |
+|---|---|
+| 🔐 **User Authentication** | Email/password registration & login with Supabase Auth |
+| 📱 **Voice History** | Save, search, and manage all analyzed audio clips |
+| 👤 **User Profiles** | Customizable profiles with avatars and statistics |
+| ☁️ **Cloud Storage** | Secure audio file storage with Supabase |
+| 📊 **Statistics** | Track sentiment trends and usage analytics |
+| ⚙️ **Settings** | Privacy controls, theme, language preferences |
+| 📲 **PWA Ready** | Install as app on mobile & desktop devices |
+
+### Infrastructure
+| Feature | Description |
+|---|---|
 | ⚡ **REST API** | `POST /analyze` from any client |
+| 🚀 **Vercel Ready** | One-click deployment to Vercel serverless |
+| 🗄️ **Supabase Integration** | PostgreSQL database + Auth + Storage |
 | 🐳 **Docker Ready** | One command to run anywhere |
 | 🧪 **Tests** | Pytest suite with mocked model calls |
-| 🚀 **CI/CD** | GitHub Actions for test + Docker build |
+| 🌐 **CORS Support** | Cross-origin requests enabled |
 
 ---
 
@@ -36,21 +55,42 @@ Built with **Flask · OpenAI Whisper · HuggingFace Transformers**.
 
 ```
 voicesense/
-├── app.py                    # Flask app — routes, lazy model loading, API
+├── app.py                    # Flask app — routes, auth, API
+├── auth_utils.py             # Authentication & session management
+├── supabase_utils.py         # Database & storage operations
 ├── config.py                 # Env-driven configuration classes
 ├── wsgi.py                   # Gunicorn WSGI entry point
+├── api/
+│   ├── index.py              # Vercel serverless entry point
+│   └── requirements.txt       # Lightweight deps for Vercel
+├── vercel.json               # Vercel deployment config
 ├── requirements.txt          # Python dependencies
-├── Procfile                  # Cloud deploy (Render / Railway / Heroku)
-├── Dockerfile                # Multi-stage production Docker image
-├── docker-compose.yml        # Docker Compose with model cache volumes
 ├── .env.example              # Env var template
 ├── .gitignore
 ├── LICENSE
+├── DEPLOYMENT.md             # Deployment guide
+├── PRE_DEPLOYMENT_CHECKLIST   # Pre-deployment checklist
 ├── static/
-│   └── css/
-│       └── style.css         # Premium dark UI stylesheet
+│   ├── css/
+│   │   ├── style.css         # Main UI stylesheet
+│   │   ├── auth.css          # Auth pages styling
+│   │   ├── dashboard.css     # Dashboard styling
+│   │   ├── history.css       # Voice history styling
+│   │   └── profile.css       # Profile page styling
+│   ├── js/
+│   │   └── service-worker.js # PWA service worker
+│   ├── icons/                # PWA app icons
+│   └── screenshots/          # PWA screenshots
 ├── templates/
-│   └── index.html            # Single-page frontend
+│   ├── index.html            # Homepage
+│   ├── login.html            # Login page
+│   ├── register.html         # Registration page
+│   ├── dashboard.html        # Main dashboard
+│   ├── history.html          # Voice clip history
+│   └── profile.html          # User profile page
+├── scripts/
+│   ├── 01-init-db.sql        # Database initialization
+│   └── migrate_db.py         # Migration helper
 ├── tests/
 │   ├── __init__.py
 │   └── test_app.py           # Pytest suite
@@ -93,6 +133,43 @@ python app.py
 ```
 
 Open **http://localhost:5000** 🎉
+
+### With Authentication (Requires Supabase)
+
+Before starting with auth features, set up Supabase:
+
+```bash
+# 1. Create .env from .env.example
+cp .env.example .env
+
+# 2. Add your Supabase credentials:
+# SUPABASE_URL=https://your-project.supabase.co
+# SUPABASE_ANON_KEY=your-anon-key
+# ... etc
+
+# 3. Initialize database (see SETUP_GUIDE.md)
+# 4. Start the app
+python app.py
+```
+
+Register a new account at http://localhost:5000/register
+
+---
+
+## 🚀 Deploy to Vercel
+
+One-click deployment with authentication and cloud storage:
+
+```bash
+# 1. Ensure code is pushed to GitHub
+git push origin main
+
+# 2. Go to vercel.com and import this repository
+# 3. Add environment variables (see DEPLOYMENT.md)
+# 4. Deploy!
+```
+
+**Full deployment guide:** See [DEPLOYMENT.md](DEPLOYMENT.md)
 
 ---
 
