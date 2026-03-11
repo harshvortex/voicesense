@@ -104,7 +104,7 @@ def generate_demo_response():
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
-ALLOWED_EXTENSIONS = {'mp3', 'wav', 'mp4', 'm4a', 'ogg', 'flac', 'webm', 'wma'}
+ALLOWED_EXTENSIONS = {'mp3', 'wav', 'mp4', 'm4a', 'ogg', 'flac', 'webm', 'wma','acc'}
 
 
 def allowed_file(filename: str) -> bool:
