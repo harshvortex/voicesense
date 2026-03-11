@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Profile — VoiceSense</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}" />
+  <link rel="icon" type="image/png" sizes="192x192" href="{{ url_for('static', filename='icons/icon-192.png') }}" />
+  <meta name="theme-color" content="#7c3aed" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+</head>
+<body>
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="navbar-container">
+      <div class="navbar-brand">
+        <svg class="navbar-icon" width="32" height="32" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="20" cy="20" r="18" stroke="currentColor" stroke-width="2" />
+          <path d="M14 16C14 14.9 14.9 14 16 14H24C25.1 14 26 14.9 26 16V28C26 29.1 25.1 30 24 30H16C14.9 30 14 29.1 14 28V16Z" fill="currentColor" />
+          <circle cx="20" cy="23" r="3" fill="white" />
+        </svg>
+        <h1>VoiceSense</h1>
+      </div>
+
+      <div class="navbar-menu">
+        <a href="{{ url_for('dashboard') }}" class="nav-link">Analyze</a>
+        <a href="{{ url_for('history') }}" class="nav-link">History</a>
+        <a href="{{ url_for('profile') }}" class="nav-link active">Profile</a>
+      </div>
+
+      <button class="navbar-toggle" id="navToggle" aria-label="Toggle menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="dashboard-main">
+    <div class="container">
+      <!-- Profile Header -->
+      <section class="profile-header">
+        <div class="profile-avatar-section">
+          <div class="profile-avatar" id="profileAvatar">
+            <svg width="80" height="80" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+            </svg>
+          </div>
+          <button class="avatar-upload-btn" id="uploadAvatarBtn" title="Upload avatar">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+            </svg>
+          </button>
+          <input type="file" id="avatarInput" hidden accept="image/*" />
+        </div>
+
+        <div class="profile-info">
+          <h1 id="displayName">Loading...</h1>
+          <p id="username" class="profile-username">@username</p>
+          <p id="bio" class="profile-bio">No bio added yet</p>
+        </div>
+      </section>
+
+      <!-- Statistics Section -->
+      <section class="statistics-section">
+        <h2>Statistics</h2>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z" />
+                <path d="M7 10h2v7H7zm4-3h2v10h-2zm4 5h2v5h-2z" />
+              </svg>
+            </div>
+            <div class="stat-content">
+              <p class="stat-value" id="totalClips">0</p>
+              <p class="stat-label">Clips Analyzed</p>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon sentiment-positive">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+              </svg>
+            </div>
+            <div class="stat-content">
+              <p class="stat-value" id="positiveCount">0</p>
+              <p class="stat-label">Positive</p>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon sentiment-negative">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z" />
+              </svg>
+            </div>
+            <div class="stat-content">
+              <p class="stat-value" id="negativeCount">0</p>
+              <p class="stat-label">Negative</p>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon sentiment-neutral">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3-8c0 1.66-1.34 3-3 3s-3-1.34-3-3 1.34-3 3-3 3 1.34 3 3z" />
+              </svg>
+            </div>
+            <div class="stat-content">
+              <p class="stat-value" id="neutralCount">0</p>
+              <p class="stat-label">Neutral</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Settings Sections -->
+      <section class="settings-section">
+        <h2>Account Settings</h2>
+
+        <!-- Personal Info -->
+        <div class="settings-card">
+          <h3>Personal Information</h3>
+          <form id="profileForm" class="form-fields">
+            <div class="form-group">
+              <label for="displayNameInput">Display Name</label>
+              <input type="text" id="displayNameInput" placeholder="Your name" />
+            </div>
+
+            <div class="form-group">
+              <label for="bioInput">Bio</label>
+              <textarea id="bioInput" placeholder="Tell us about yourself" rows="3"></textarea>
+            </div>
+
+            <button type="submit" class="save-btn">Save Changes</button>
+          </form>
+        </div>
+
+        <!-- Preferences -->
+        <div class="settings-card">
+          <h3>Preferences</h3>
+          <div class="preference-item">
+            <div class="preference-info">
+              <label for="themeToggle">Dark Theme</label>
+              <p>Use dark mode for the interface</p>
+            </div>
+            <input type="checkbox" id="themeToggle" class="toggle-switch" checked />
+          </div>
+
+          <div class="preference-item">
+            <div class="preference-info">
+              <label for="notificationsToggle">Notifications</label>
+              <p>Receive email notifications</p>
+            </div>
+            <input type="checkbox" id="notificationsToggle" class="toggle-switch" checked />
+          </div>
+
+          <div class="preference-item">
+            <div class="preference-info">
+              <label for="languageSelect">Language</label>
+              <p>Choose your preferred language</p>
+            </div>
+            <select id="languageSelect" class="preference-select">
+              <option value="en">English</option>
+              <option value="es">Español</option>
+              <option value="fr">Français</option>
+              <option value="de">Deutsch</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Privacy Settings -->
+        <div class="settings-card">
+          <h3>Privacy & Data</h3>
+          <div class="preference-item">
+            <div class="preference-info">
+              <label for="privateProfileToggle">Private Profile</label>
+              <p>Only you can see your clips and statistics</p>
+            </div>
+            <input type="checkbox" id="privateProfileToggle" class="toggle-switch" />
+          </div>
+
+          <div class="preference-item">
+            <div class="preference-info">
+              <label for="dataRetention">Data Retention</label>
+              <p>Automatically delete old clips after:</p>
+            </div>
+            <select id="dataRetention" class="preference-select">
+              <option value="30">30 days</option>
+              <option value="90">90 days</option>
+              <option value="180">180 days</option>
+              <option value="365">1 year</option>
+              <option value="0">Never</option>
+            </select>
+          </div>
+
+          <button class="danger-btn" id="deleteAccountBtn">Delete Account</button>
+        </div>
+
+        <!-- Logout -->
+        <div class="settings-card danger">
+          <h3>Session</h3>
+          <p>You are currently logged in</p>
+          <button class="danger-btn" id="logoutBtn">Logout</button>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Mobile Navigation Toggle -->
+  <script>
+    const navToggle = document.getElementById('navToggle');
+    const navMenu = document.querySelector('.navbar-menu');
+
+    navToggle.addEventListener('click', () => {
+      navMenu.classList.toggle('active');
+    });
+
+    document.querySelectorAll('.nav-link').forEach(link => {
+      link.addEventListener('click', () => {
+        navMenu.classList.remove('active');
+      });
+    });
+  </script>
+
+  <!-- Profile Management Script -->
+  <script>
+    const profileForm = document.getElementById('profileForm');
+    const uploadAvatarBtn = document.getElementById('uploadAvatarBtn');
+    const avatarInput = document.getElementById('avatarInput');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const deleteAccountBtn = document.getElementById('deleteAccountBtn');
+
+    let currentProfile = null;
+
+    // Load profile on page load
+    loadProfile();
+    loadStatistics();
+
+    // Form submission
+    profileForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      updateProfile();
+    });
+
+    // Avatar upload
+    uploadAvatarBtn.addEventListener('click', () => {
+      avatarInput.click();
+    });
+
+    avatarInput.addEventListener('change', (e) => {
+      handleAvatarUpload(e.target.files[0]);
+    });
+
+    // Logout
+    logoutBtn.addEventListener('click', async () => {
+      if (confirm('Are you sure you want to logout?')) {
+        try {
+          const response = await fetch('{{ url_for("logout") }}', {
+            method: 'POST',
+          });
+          if (response.ok) {
+            window.location.href = '{{ url_for("login") }}';
+          }
+        } catch (error) {
+          console.error('Logout error:', error);
+        }
+      }
+    });
+
+    // Delete account
+    deleteAccountBtn.addEventListener('click', () => {
+      if (confirm('Are you sure you want to delete your account? This cannot be undone.')) {
+        if (confirm('This will delete all your data permanently. Type "DELETE" to confirm.')) {
+          // Implementation for account deletion
+          alert('Account deletion feature coming soon');
+        }
+      }
+    });
+
+    async function loadProfile() {
+      try {
+        const response = await fetch('{{ url_for("get_profile") }}');
+        if (response.ok) {
+          const profile = await response.json();
+          currentProfile = profile;
+          displayProfile(profile);
+        }
+      } catch (error) {
+        console.error('Load profile error:', error);
+      }
+    }
+
+    function displayProfile(profile) {
+      document.getElementById('displayName').textContent = profile.display_name || 'User';
+      document.getElementById('username').textContent = `@${profile.username}`;
+      document.getElementById('bio').textContent = profile.bio || 'No bio added yet';
+      document.getElementById('displayNameInput').value = profile.display_name || '';
+      document.getElementById('bioInput').value = profile.bio || '';
+      document.getElementById('notificationsToggle').checked = profile.notifications_enabled ?? true;
+      document.getElementById('privateProfileToggle').checked = profile.is_private ?? false;
+      document.getElementById('languageSelect').value = profile.language || 'en';
+      document.getElementById('dataRetention').value = profile.data_retention_days || 90;
+      document.getElementById('themeToggle').checked = profile.theme === 'dark';
+
+      // Update avatar
+      if (profile.avatar_url) {
+        const avatar = document.getElementById('profileAvatar');
+        avatar.style.backgroundImage = `url(${profile.avatar_url})`;
+        avatar.style.backgroundSize = 'cover';
+        avatar.style.backgroundPosition = 'center';
+        avatar.innerHTML = '';
+      }
+    }
+
+    async function updateProfile() {
+      const updates = {
+        display_name: document.getElementById('displayNameInput').value,
+        bio: document.getElementById('bioInput').value,
+        notifications_enabled: document.getElementById('notificationsToggle').checked,
+        is_private: document.getElementById('privateProfileToggle').checked,
+        language: document.getElementById('languageSelect').value,
+        data_retention_days: parseInt(document.getElementById('dataRetention').value),
+        theme: document.getElementById('themeToggle').checked ? 'dark' : 'light',
+      };
+
+      try {
+        const response = await fetch('{{ url_for("update_profile") }}', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(updates),
+        });
+
+        if (response.ok) {
+          alert('Profile updated successfully');
+          loadProfile();
+        }
+      } catch (error) {
+        console.error('Update profile error:', error);
+        alert('Failed to update profile');
+      }
+    }
+
+    async function handleAvatarUpload(file) {
+      if (!file) return;
+
+      const formData = new FormData();
+      formData.append('avatar', file);
+
+      try {
+        const response = await fetch('{{ url_for("upload_avatar") }}', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (response.ok) {
+          loadProfile();
+        }
+      } catch (error) {
+        console.error('Avatar upload error:', error);
+        alert('Failed to upload avatar');
+      }
+    }
+
+    async function loadStatistics() {
+      try {
+        const response = await fetch('{{ url_for("get_statistics") }}');
+        if (response.ok) {
+          const stats = await response.json();
+          displayStatistics(stats);
+        }
+      } catch (error) {
+        console.error('Load statistics error:', error);
+      }
+    }
+
+    function displayStatistics(stats) {
+      document.getElementById('totalClips').textContent = stats.total_clips_analyzed || 0;
+
+      const sentiments = stats.sentiment_distribution || {};
+      document.getElementById('positiveCount').textContent = sentiments.POSITIVE || sentiments.positive || 0;
+      document.getElementById('negativeCount').textContent = sentiments.NEGATIVE || sentiments.negative || 0;
+      document.getElementById('neutralCount').textContent = sentiments.NEUTRAL || sentiments.neutral || 0;
+    }
+  </script>
+</body>
+</html>

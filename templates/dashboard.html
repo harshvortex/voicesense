@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Dashboard — VoiceSense</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}" />
+  <link rel="icon" type="image/png" sizes="192x192" href="{{ url_for('static', filename='icons/icon-192.png') }}" />
+  <meta name="theme-color" content="#7c3aed" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+</head>
+<body>
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="navbar-container">
+      <div class="navbar-brand">
+        <svg class="navbar-icon" width="32" height="32" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="20" cy="20" r="18" stroke="currentColor" stroke-width="2" />
+          <path d="M14 16C14 14.9 14.9 14 16 14H24C25.1 14 26 14.9 26 16V28C26 29.1 25.1 30 24 30H16C14.9 30 14 29.1 14 28V16Z" fill="currentColor" />
+          <circle cx="20" cy="23" r="3" fill="white" />
+        </svg>
+        <h1>VoiceSense</h1>
+      </div>
+
+      <div class="navbar-menu">
+        <a href="{{ url_for('dashboard') }}" class="nav-link active">Analyze</a>
+        <a href="{{ url_for('history') }}" class="nav-link">History</a>
+        <a href="{{ url_for('profile') }}" class="nav-link">Profile</a>
+      </div>
+
+      <button class="navbar-toggle" id="navToggle" aria-label="Toggle menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="dashboard-main">
+    <div class="container">
+      <!-- Welcome Section -->
+      <section class="welcome-section">
+        <div class="welcome-content">
+          <h2>Welcome back!</h2>
+          <p>Upload an audio file to analyze its sentiment and get instant transcription.</p>
+        </div>
+      </section>
+
+      <!-- Upload Section -->
+      <section class="upload-section">
+        <div class="upload-container">
+          <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+            </div>
+            <h3>Drop your audio file here</h3>
+            <p>or click to select a file</p>
+            <input type="file" id="audioInput" hidden accept="audio/*" />
+            <small>Supported formats: MP3, WAV, AAC, M4A, OGG, FLAC, WebM, WMA</small>
+          </div>
+
+          <!-- File Info -->
+          <div id="fileInfo" class="file-info" style="display: none;">
+            <div class="file-details">
+              <div class="file-icon">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                </svg>
+              </div>
+              <div class="file-text">
+                <p class="file-name" id="fileName">file.mp3</p>
+                <p class="file-size" id="fileSize">1.2 MB</p>
+              </div>
+              <button type="button" class="file-remove" id="removeFile" aria-label="Remove file">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Analysis Button -->
+        <button type="button" id="analyzeBtn" class="analyze-button" style="display: none;">
+          <span class="button-text">Analyze Audio</span>
+          <span class="button-spinner" style="display: none;">
+            <svg class="spinner" viewBox="0 0 50 50">
+              <circle cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+            </svg>
+          </span>
+        </button>
+
+        <!-- Error Message -->
+        <div id="uploadError" class="error-message" style="display: none;"></div>
+      </section>
+
+      <!-- Results Section -->
+      <section id="resultsSection" class="results-section" style="display: none;">
+        <div class="results-header">
+          <h2>Analysis Results</h2>
+          <button type="button" class="results-close" id="closeResults" aria-label="Close results">×</button>
+        </div>
+
+        <div class="results-grid">
+          <!-- Sentiment Card -->
+          <div class="result-card sentiment-card">
+            <h3>Sentiment</h3>
+            <div class="sentiment-display">
+              <div class="sentiment-emoji" id="sentimentEmoji">😊</div>
+              <div class="sentiment-info">
+                <p class="sentiment-label" id="sentimentLabel">Positive</p>
+                <p class="sentiment-confidence" id="sentimentConfidence">98.5%</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Transcription Card -->
+          <div class="result-card transcription-card">
+            <h3>Transcription</h3>
+            <div class="transcription-text" id="transcriptionText">
+              Your transcribed text will appear here...
+            </div>
+          </div>
+        </div>
+
+        <!-- Save to History -->
+        <div class="results-actions">
+          <button type="button" id="saveToHistory" class="save-button">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="12 3 20 7.5 20 19.5 12 24 4 19.5 4 7.5 12 3"></polyline>
+            </svg>
+            Save to History
+          </button>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Mobile Navigation Toggle Script -->
+  <script>
+    const navToggle = document.getElementById('navToggle');
+    const navMenu = document.querySelector('.navbar-menu');
+
+    navToggle.addEventListener('click', () => {
+      navMenu.classList.toggle('active');
+    });
+
+    // Close menu when link is clicked
+    document.querySelectorAll('.nav-link').forEach(link => {
+      link.addEventListener('click', () => {
+        navMenu.classList.remove('active');
+      });
+    });
+  </script>
+
+  <!-- Upload and Analysis Script -->
+  <script>
+    const uploadArea = document.getElementById('uploadArea');
+    const audioInput = document.getElementById('audioInput');
+    const fileInfo = document.getElementById('fileInfo');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const uploadError = document.getElementById('uploadError');
+    const resultsSection = document.getElementById('resultsSection');
+    const removeFileBtn = document.getElementById('removeFile');
+    const closeResultsBtn = document.getElementById('closeResults');
+
+    let selectedFile = null;
+
+    // Handle drag and drop
+    uploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadArea.classList.add('dragover');
+    });
+
+    uploadArea.addEventListener('dragleave', () => {
+      uploadArea.classList.remove('dragover');
+    });
+
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.classList.remove('dragover');
+      handleFileSelect(e.dataTransfer.files[0]);
+    });
+
+    // Handle click to select
+    uploadArea.addEventListener('click', () => {
+      audioInput.click();
+    });
+
+    audioInput.addEventListener('change', (e) => {
+      handleFileSelect(e.target.files[0]);
+    });
+
+    function handleFileSelect(file) {
+      uploadError.style.display = 'none';
+      
+      if (!file) return;
+
+      const supportedFormats = ['mp3', 'wav', 'aac', 'm4a', 'ogg', 'flac', 'webm', 'wma'];
+      const fileType = file.name.split('.').pop().toLowerCase();
+
+      if (!supportedFormats.includes(fileType)) {
+        uploadError.textContent = `Unsupported format: ${fileType}. Please use: ${supportedFormats.join(', ')}`;
+        uploadError.style.display = 'block';
+        return;
+      }
+
+      selectedFile = file;
+      document.getElementById('fileName').textContent = file.name;
+      document.getElementById('fileSize').textContent = formatFileSize(file.size);
+      fileInfo.style.display = 'flex';
+      analyzeBtn.style.display = 'flex';
+      uploadArea.style.display = 'none';
+    }
+
+    removeFileBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      selectedFile = null;
+      audioInput.value = '';
+      fileInfo.style.display = 'none';
+      analyzeBtn.style.display = 'none';
+      uploadArea.style.display = 'flex';
+      resultsSection.style.display = 'none';
+    });
+
+    analyzeBtn.addEventListener('click', async () => {
+      if (!selectedFile) return;
+
+      const formData = new FormData();
+      formData.append('audio', selectedFile);
+
+      // Show loading state
+      analyzeBtn.disabled = true;
+      analyzeBtn.querySelector('.button-text').style.display = 'none';
+      analyzeBtn.querySelector('.button-spinner').style.display = 'flex';
+
+      try {
+        const response = await fetch('{{ url_for("analyze") }}', {
+          method: 'POST',
+          body: formData,
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          displayResults(data);
+        } else {
+          uploadError.textContent = data.error || 'Analysis failed. Please try again.';
+          uploadError.style.display = 'block';
+        }
+      } catch (error) {
+        console.error('Analysis error:', error);
+        uploadError.textContent = 'An error occurred. Please try again.';
+        uploadError.style.display = 'block';
+      } finally {
+        analyzeBtn.disabled = false;
+        analyzeBtn.querySelector('.button-text').style.display = 'inline';
+        analyzeBtn.querySelector('.button-spinner').style.display = 'none';
+      }
+    });
+
+    function displayResults(data) {
+      const sentiment = data.sentiment.label.toLowerCase();
+      const emojiMap = {
+        positive: '😊',
+        negative: '😞',
+        neutral: '😐',
+      };
+
+      document.getElementById('sentimentEmoji').textContent = emojiMap[sentiment] || '🎙️';
+      document.getElementById('sentimentLabel').textContent = data.sentiment.label;
+      document.getElementById('sentimentConfidence').textContent = `${data.sentiment.confidence.toFixed(1)}%`;
+      document.getElementById('transcriptionText').textContent = data.transcription;
+
+      resultsSection.style.display = 'block';
+      window.scrollTo({ top: resultsSection.offsetTop - 100, behavior: 'smooth' });
+    }
+
+    closeResultsBtn.addEventListener('click', () => {
+      resultsSection.style.display = 'none';
+    });
+
+    function formatFileSize(bytes) {
+      if (bytes === 0) return '0 Bytes';
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+    }
+  </script>
+</body>
+</html>
