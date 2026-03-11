@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Voice History — VoiceSense</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/history.css') }}" />
+  <link rel="icon" type="image/png" sizes="192x192" href="{{ url_for('static', filename='icons/icon-192.png') }}" />
+  <meta name="theme-color" content="#7c3aed" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+</head>
+<body>
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="navbar-container">
+      <div class="navbar-brand">
+        <svg class="navbar-icon" width="32" height="32" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="20" cy="20" r="18" stroke="currentColor" stroke-width="2" />
+          <path d="M14 16C14 14.9 14.9 14 16 14H24C25.1 14 26 14.9 26 16V28C26 29.1 25.1 30 24 30H16C14.9 30 14 29.1 14 28V16Z" fill="currentColor" />
+          <circle cx="20" cy="23" r="3" fill="white" />
+        </svg>
+        <h1>VoiceSense</h1>
+      </div>
+
+      <div class="navbar-menu">
+        <a href="{{ url_for('dashboard') }}" class="nav-link">Analyze</a>
+        <a href="{{ url_for('history') }}" class="nav-link active">History</a>
+        <a href="{{ url_for('profile') }}" class="nav-link">Profile</a>
+      </div>
+
+      <button class="navbar-toggle" id="navToggle" aria-label="Toggle menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="dashboard-main">
+    <div class="container">
+      <!-- Header -->
+      <section class="page-header">
+        <h2>Voice Clip History</h2>
+        <p>View all your analyzed audio files and their sentiment analysis results.</p>
+      </section>
+
+      <!-- Filters -->
+      <section class="filters-section">
+        <div class="search-box">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.35-4.35"></path>
+          </svg>
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Search clips by filename or content..."
+            class="search-input"
+          />
+        </div>
+
+        <div class="filter-buttons">
+          <button class="filter-btn active" data-filter="all">All</button>
+          <button class="filter-btn" data-filter="positive">Positive</button>
+          <button class="filter-btn" data-filter="negative">Negative</button>
+          <button class="filter-btn" data-filter="neutral">Neutral</button>
+        </div>
+      </section>
+
+      <!-- Clips List -->
+      <section class="clips-section">
+        <div id="clipsContainer" class="clips-grid">
+          <!-- Clips will be loaded here -->
+          <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Loading your voice clips...</p>
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="empty-state" style="display: none;">
+          <div class="empty-icon">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" />
+            </svg>
+          </div>
+          <h3>No voice clips yet</h3>
+          <p>Analyze some audio files to get started.</p>
+          <a href="{{ url_for('dashboard') }}" class="empty-action-btn">Go to Analyzer</a>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Clip Details Modal -->
+  <div id="clipModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modalTitle">Clip Details</h3>
+        <button class="modal-close" id="closeModal" aria-label="Close">×</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="detail-group">
+          <label>Filename</label>
+          <p id="modalFilename">-</p>
+        </div>
+
+        <div class="detail-group">
+          <label>Sentiment</label>
+          <p id="modalSentiment">-</p>
+        </div>
+
+        <div class="detail-group">
+          <label>Confidence</label>
+          <div class="confidence-bar">
+            <div class="confidence-fill" id="modalConfidenceFill" style="width: 0%"></div>
+          </div>
+          <p id="modalConfidenceText">-</p>
+        </div>
+
+        <div class="detail-group">
+          <label>Transcription</label>
+          <p id="modalTranscription" class="transcription-text">-</p>
+        </div>
+
+        <div class="detail-group">
+          <label>Analyzed</label>
+          <p id="modalDate">-</p>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="modal-btn cancel" id="closeModalBtn">Close</button>
+        <button class="modal-btn danger" id="deleteClipBtn">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Navigation Toggle -->
+  <script>
+    const navToggle = document.getElementById('navToggle');
+    const navMenu = document.querySelector('.navbar-menu');
+
+    navToggle.addEventListener('click', () => {
+      navMenu.classList.toggle('active');
+    });
+
+    document.querySelectorAll('.nav-link').forEach(link => {
+      link.addEventListener('click', () => {
+        navMenu.classList.remove('active');
+      });
+    });
+  </script>
+
+  <!-- History Management Script -->
+  <script>
+    const clipsContainer = document.getElementById('clipsContainer');
+    const emptyState = document.getElementById('emptyState');
+    const searchInput = document.getElementById('searchInput');
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    const clipModal = document.getElementById('clipModal');
+    const closeModal = document.getElementById('closeModal');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const deleteClipBtn = document.getElementById('deleteClipBtn');
+
+    let allClips = [];
+    let currentFilter = 'all';
+    let currentClipId = null;
+
+    // Load clips on page load
+    loadClips();
+
+    // Search and filter handlers
+    searchInput.addEventListener('input', filterAndSearch);
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        filterBtns.forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        currentFilter = e.target.dataset.filter;
+        filterAndSearch();
+      });
+    });
+
+    // Modal handlers
+    closeModal.addEventListener('click', closeClipModal);
+    closeModalBtn.addEventListener('click', closeClipModal);
+    deleteClipBtn.addEventListener('click', deleteClip);
+
+    async function loadClips() {
+      try {
+        const response = await fetch('{{ url_for("get_clips") }}');
+        if (response.ok) {
+          const data = await response.json();
+          allClips = data.clips || [];
+          displayClips(allClips);
+        } else {
+          showError('Failed to load clips');
+        }
+      } catch (error) {
+        console.error('Load error:', error);
+        showError('An error occurred while loading clips');
+      }
+    }
+
+    function displayClips(clips) {
+      if (clips.length === 0) {
+        clipsContainer.innerHTML = '';
+        emptyState.style.display = 'flex';
+        return;
+      }
+
+      emptyState.style.display = 'none';
+      clipsContainer.innerHTML = clips.map(clip => `
+        <div class="clip-card sentiment-${clip.sentiment?.toLowerCase() || 'unknown'}" data-clip-id="${clip.id}">
+          <div class="clip-header">
+            <div class="clip-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+              </svg>
+            </div>
+            <div class="clip-info">
+              <h4 class="clip-name">${escapeHtml(clip.original_filename || clip.filename)}</h4>
+              <p class="clip-date">${formatDate(clip.created_at)}</p>
+            </div>
+          </div>
+
+          <div class="clip-sentiment">
+            <span class="sentiment-badge sentiment-${clip.sentiment?.toLowerCase() || 'unknown'}">
+              ${clip.sentiment || 'Unknown'}
+            </span>
+            <span class="sentiment-score">${clip.confidence_score?.toFixed(1) || 'N/A'}%</span>
+          </div>
+
+          <div class="clip-actions">
+            <button class="clip-btn details-btn" data-action="view" aria-label="View details">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
+            <button class="clip-btn delete-btn" data-action="delete" aria-label="Delete">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+      `).join('');
+
+      // Add event listeners to clip cards
+      document.querySelectorAll('.clip-card').forEach(card => {
+        const detailsBtn = card.querySelector('.details-btn');
+        const deleteBtn = card.querySelector('.delete-btn');
+        const clipId = card.dataset.clipId;
+
+        detailsBtn.addEventListener('click', () => {
+          showClipDetails(clipId);
+        });
+
+        deleteBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          currentClipId = clipId;
+          showDeleteConfirm(clipId);
+        });
+      });
+    }
+
+    function filterAndSearch() {
+      const searchTerm = searchInput.value.toLowerCase();
+      const filtered = allClips.filter(clip => {
+        const matchesSearch =
+          clip.original_filename?.toLowerCase().includes(searchTerm) ||
+          clip.filename?.toLowerCase().includes(searchTerm) ||
+          clip.transcription?.toLowerCase().includes(searchTerm);
+
+        const matchesFilter =
+          currentFilter === 'all' ||
+          clip.sentiment?.toLowerCase() === currentFilter;
+
+        return matchesSearch && matchesFilter;
+      });
+
+      displayClips(filtered);
+    }
+
+    function showClipDetails(clipId) {
+      const clip = allClips.find(c => c.id === clipId);
+      if (!clip) return;
+
+      currentClipId = clipId;
+      document.getElementById('modalTitle').textContent = escapeHtml(clip.original_filename || clip.filename);
+      document.getElementById('modalFilename').textContent = escapeHtml(clip.original_filename || clip.filename);
+      document.getElementById('modalSentiment').textContent = clip.sentiment || 'Unknown';
+      document.getElementById('modalConfidenceFill').style.width = `${clip.confidence_score || 0}%`;
+      document.getElementById('modalConfidenceText').textContent = `${clip.confidence_score?.toFixed(1) || 'N/A'}%`;
+      document.getElementById('modalTranscription').textContent = clip.transcription || 'No transcription available';
+      document.getElementById('modalDate').textContent = formatDate(clip.created_at);
+
+      clipModal.style.display = 'flex';
+    }
+
+    function closeClipModal() {
+      clipModal.style.display = 'none';
+      currentClipId = null;
+    }
+
+    async function deleteClip() {
+      if (!currentClipId) return;
+
+      if (!confirm('Are you sure you want to delete this clip?')) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`{{ url_for('delete_clip', clip_id='') }}${currentClipId}`, {
+          method: 'DELETE',
+        });
+
+        if (response.ok) {
+          closeClipModal();
+          loadClips();
+        } else {
+          showError('Failed to delete clip');
+        }
+      } catch (error) {
+        console.error('Delete error:', error);
+        showError('An error occurred while deleting the clip');
+      }
+    }
+
+    function showDeleteConfirm(clipId) {
+      currentClipId = clipId;
+      showClipDetails(clipId);
+    }
+
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function escapeHtml(text) {
+      const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;',
+      };
+      return text.replace(/[&<>"']/g, m => map[m]);
+    }
+
+    function showError(message) {
+      alert(message);
+    }
+  </script>
+</body>
+</html>

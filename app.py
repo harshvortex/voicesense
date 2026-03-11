@@ -10,10 +10,12 @@ import tempfile
 import logging
 import time
 import random
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, redirect, url_for, session
 from werkzeug.utils import secure_filename
 from flask_cors import CORS
 from config import Config
+from auth_utils import get_auth_manager, auth_required, api_auth_required
+from supabase_utils import get_supabase_manager
 
 # ── Logging ───────────────────────────────────────────────────────────────────
 logging.basicConfig(
@@ -26,6 +28,11 @@ logger = logging.getLogger('voicesense')
 # ── App ───────────────────────────────────────────────────────────────────────
 app = Flask(__name__, static_folder='static', static_url_path='/static')
 app.config.from_object(Config)
+
+# Session configuration
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['PERMANENT_SESSION_LIFETIME'] = 24 * 60 * 60  # 24 hours
+app.secret_key = os.getenv('FLASK_SECRET_KEY', 'dev-secret-key-change-in-production')
 
 # Enable CORS for service worker and PWA support
 CORS(app, resources={
@@ -112,7 +119,7 @@ def generate_demo_response():
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
-ALLOWED_EXTENSIONS = {'mp3', 'wav', 'mp4', 'm4a', 'ogg', 'flac', 'webm', 'wma','acc'}
+ALLOWED_EXTENSIONS = {'mp3', 'wav', 'mp4', 'm4a', 'ogg', 'flac', 'webm', 'wma', 'aac', 'acc'}
 
 
 def allowed_file(filename: str) -> bool:
@@ -123,6 +130,92 @@ def allowed_file(filename: str) -> bool:
 @app.route('/')
 def index():
     return render_template('index.html', demo_mode=DEMO_MODE)
+
+
+# ── Authentication Routes ─────────────────────────────────────────────────────
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    """User registration page and endpoint."""
+    if request.method == 'POST':
+        data = request.get_json() if request.is_json else request.form
+        email = data.get('email', '').strip()
+        password = data.get('password', '').strip()
+        username = data.get('username', '').strip()
+        display_name = data.get('display_name', '').strip()
+        
+        if not all([email, password, username]):
+            return jsonify({'error': 'Missing required fields'}), 400
+        
+        supabase = get_supabase_manager()
+        success, message = supabase.register_user(email, password, username, display_name)
+        
+        if success:
+            return jsonify({'success': True, 'message': message}), 201
+        return jsonify({'error': message}), 400
+    
+    return render_template('register.html')
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    """User login page and endpoint."""
+    if request.method == 'POST':
+        data = request.get_json() if request.is_json else request.form
+        email = data.get('email', '').strip()
+        password = data.get('password', '').strip()
+        
+        if not all([email, password]):
+            return jsonify({'error': 'Email and password required'}), 400
+        
+        supabase = get_supabase_manager()
+        success, response = supabase.login_user(email, password)
+        
+        if success:
+            auth_manager = get_auth_manager()
+            auth_manager.set_session(response['user'], response['session'])
+            
+            if request.is_json:
+                return jsonify({'success': True, 'message': 'Logged in successfully'}), 200
+            return redirect(url_for('dashboard'))
+        
+        return jsonify({'error': response.get('error', 'Login failed')}), 401
+    
+    return render_template('login.html')
+
+
+@app.route('/logout', methods=['POST'])
+@auth_required
+def logout():
+    """Logout user."""
+    auth_manager = get_auth_manager()
+    auth_manager.clear_session()
+    
+    if request.is_json:
+        return jsonify({'success': True, 'message': 'Logged out successfully'}), 200
+    return redirect(url_for('login'))
+
+
+@app.route('/dashboard')
+@auth_required
+def dashboard():
+    """Main dashboard page."""
+    auth_manager = get_auth_manager()
+    user = auth_manager.get_current_user()
+    return render_template('dashboard.html', user=user)
+
+
+@app.route('/history')
+@auth_required
+def history():
+    """Voice clip history page."""
+    return render_template('history.html')
+
+
+@app.route('/profile')
+@auth_required
+def profile():
+    """User profile page."""
+    return render_template('profile.html')
 
 
 @app.route('/manifest.json')
@@ -141,9 +234,112 @@ def health():
     })
 
 
+# ── API Endpoints (Voice Clips & Profile) ─────────────────────────────────────
+@app.route('/api/clips', methods=['GET'])
+@auth_required
+def get_clips():
+    """Get user's voice clips."""
+    auth_manager = get_auth_manager()
+    user = auth_manager.get_current_user()
+    
+    supabase = get_supabase_manager()
+    success, clips = supabase.get_user_voice_clips(user['id'])
+    
+    if success:
+        return jsonify({'clips': clips}), 200
+    return jsonify({'error': 'Failed to fetch clips'}), 500
+
+
+@app.route('/api/clips/<clip_id>', methods=['DELETE'])
+@auth_required
+def delete_clip(clip_id):
+    """Delete a voice clip."""
+    auth_manager = get_auth_manager()
+    user = auth_manager.get_current_user()
+    
+    supabase = get_supabase_manager()
+    success, message = supabase.delete_voice_clip(clip_id, user['id'])
+    
+    if success:
+        return jsonify({'success': True, 'message': message}), 200
+    return jsonify({'error': message}), 400
+
+
+@app.route('/api/profile', methods=['GET'])
+@auth_required
+def get_profile():
+    """Get user profile."""
+    auth_manager = get_auth_manager()
+    user = auth_manager.get_current_user()
+    
+    supabase = get_supabase_manager()
+    success, profile = supabase.get_user_profile(user['id'])
+    
+    if success:
+        return jsonify(profile), 200
+    return jsonify({'error': 'Failed to fetch profile'}), 500
+
+
+@app.route('/api/profile', methods=['PUT'])
+@auth_required
+def update_profile():
+    """Update user profile."""
+    auth_manager = get_auth_manager()
+    user = auth_manager.get_current_user()
+    
+    data = request.get_json()
+    supabase = get_supabase_manager()
+    success, message = supabase.update_user_profile(user['id'], data)
+    
+    if success:
+        return jsonify({'success': True, 'message': message}), 200
+    return jsonify({'error': message}), 400
+
+
+@app.route('/api/profile/avatar', methods=['POST'])
+@auth_required
+def upload_avatar():
+    """Upload user avatar."""
+    auth_manager = get_auth_manager()
+    user = auth_manager.get_current_user()
+    
+    if 'avatar' not in request.files:
+        return jsonify({'error': 'No file provided'}), 400
+    
+    file = request.files['avatar']
+    if file.filename == '':
+        return jsonify({'error': 'No file selected'}), 400
+    
+    supabase = get_supabase_manager()
+    success, url_or_error = supabase.upload_avatar(user['id'], file.read(), file.filename)
+    
+    if success:
+        return jsonify({'success': True, 'url': url_or_error}), 200
+    return jsonify({'error': url_or_error}), 400
+
+
+@app.route('/api/statistics', methods=['GET'])
+@auth_required
+def get_statistics():
+    """Get user statistics."""
+    auth_manager = get_auth_manager()
+    user = auth_manager.get_current_user()
+    
+    supabase = get_supabase_manager()
+    success, stats = supabase.get_user_statistics(user['id'])
+    
+    if success:
+        return jsonify(stats), 200
+    return jsonify({'error': 'Failed to fetch statistics'}), 500
+
+
 @app.route('/analyze', methods=['POST'])
+@auth_required
 def analyze():
+    """Analyze voice clip (authenticated)."""
     start = time.time()
+    auth_manager = get_auth_manager()
+    user = auth_manager.get_current_user()
 
     if 'audio' not in request.files:
         return jsonify({'error': 'No audio file provided.'}), 400
@@ -187,6 +383,30 @@ def analyze():
         word_count = len(transcription.split())
         logger.info('Result → lang=%s  sent=%s (%s%%)  words=%d  time=%ss',
                      language, label, confidence, word_count, elapsed)
+
+        # Save clip to database and storage
+        supabase = get_supabase_manager()
+        file_type = file.filename.rsplit('.', 1)[1].lower()
+        
+        # Upload to storage
+        file.seek(0)  # Reset file pointer
+        success, storage_path = supabase.upload_voice_clip(user['id'], file.read(), f"{int(time.time())}_{file.filename}")
+        
+        if success:
+            # Save metadata
+            supabase.save_voice_clip(
+                user_id=user['id'],
+                filename=file.filename,
+                original_filename=file.filename,
+                file_size=file.content_length,
+                file_type=file_type,
+                storage_path=storage_path,
+                transcription=transcription,
+                sentiment=label,
+                sentiment_score=confidence / 100,
+                confidence_score=confidence,
+                emotions={}
+            )
 
         return jsonify({
             'success': True,
