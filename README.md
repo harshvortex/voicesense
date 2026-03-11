@@ -132,7 +132,7 @@ cp .env.example .env          # edit if needed
 python app.py
 ```
 
-Open **http://localhost:5000** 🎉
+Open **http://localhost:8000** 🎉
 
 ### With Authentication (Requires Supabase)
 
@@ -152,7 +152,7 @@ cp .env.example .env
 python app.py
 ```
 
-Register a new account at http://localhost:5000/register
+Register a new account at http://localhost:8000/register
 
 ---
 
@@ -181,7 +181,7 @@ docker-compose up --build
 
 # Or plain Docker
 docker build -t voicesense .
-docker run -p 5000:5000 voicesense
+docker run -p 8000:8000 voicesense
 ```
 
 ---
@@ -234,7 +234,7 @@ Upload an audio file → receive transcription + sentiment.
 
 ```bash
 # cURL
-curl -X POST http://localhost:5000/analyze -F "audio=@recording.mp3"
+curl -X POST http://localhost:8000/analyze -F "audio=@recording.mp3"
 ```
 
 ```python
@@ -242,7 +242,7 @@ curl -X POST http://localhost:5000/analyze -F "audio=@recording.mp3"
 import requests
 
 with open('recording.mp3', 'rb') as f:
-    res = requests.post('http://localhost:5000/analyze', files={'audio': f})
+    res = requests.post('http://localhost:8000/analyze', files={'audio': f})
     print(res.json())
 ```
 
@@ -258,7 +258,7 @@ All settings via environment variables or `.env`:
 | `SENTIMENT_MODEL` | `distilbert-base-uncased-finetuned-sst-2-english` | Any HuggingFace sentiment model |
 | `MAX_UPLOAD_MB` | `50` | Max upload size in MB |
 | `SECRET_KEY` | `change-me-in-production` | Flask secret key |
-| `PORT` | `5000` | Server port |
+| `PORT` | `8000` | Server port |
 | `FLASK_DEBUG` | `false` | Debug mode |
 
 ### Whisper Model Comparison

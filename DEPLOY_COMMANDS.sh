@@ -167,7 +167,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     echo "✅ Setup complete! Run locally with:"
     echo "  python app.py"
     echo ""
-    echo "Then visit: http://localhost:5000"
+    echo "Then visit: http://localhost:8000"
     echo ""
 fi
 
