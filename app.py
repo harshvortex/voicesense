@@ -12,6 +12,7 @@ import time
 import random
 from flask import Flask, request, jsonify, render_template
 from werkzeug.utils import secure_filename
+from flask_cors import CORS
 from config import Config
 
 # ── Logging ───────────────────────────────────────────────────────────────────
@@ -25,6 +26,13 @@ logger = logging.getLogger('voicesense')
 # ── App ───────────────────────────────────────────────────────────────────────
 app = Flask(__name__, static_folder='static', static_url_path='/static')
 app.config.from_object(Config)
+
+# Enable CORS for service worker and PWA support
+CORS(app, resources={
+    r'/analyze': {'origins': '*'},
+    r'/health': {'origins': '*'},
+    r'/manifest.json': {'origins': '*'},
+})
 
 # ── Demo mode (Vercel / lightweight environments) ─────────────────────────────
 DEMO_MODE = os.environ.get('DEMO_MODE', 'false').lower() == 'true'
@@ -115,6 +123,12 @@ def allowed_file(filename: str) -> bool:
 @app.route('/')
 def index():
     return render_template('index.html', demo_mode=DEMO_MODE)
+
+
+@app.route('/manifest.json')
+def manifest():
+    """Serve the PWA manifest."""
+    return app.send_static_file('manifest.json')
 
 
 @app.route('/health')
