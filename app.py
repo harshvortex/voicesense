@@ -13,6 +13,11 @@ import random
 from flask import Flask, request, jsonify, render_template, redirect, url_for, session
 from werkzeug.utils import secure_filename
 from flask_cors import CORS
+from dotenv import load_dotenv
+
+# Load .env file
+load_dotenv()
+
 from config import Config
 from auth_utils import get_auth_manager, auth_required, api_auth_required
 from supabase_utils import get_supabase_manager
