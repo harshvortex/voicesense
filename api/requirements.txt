@@ -1,4 +1,7 @@
-# Lightweight deps for Vercel (no torch/whisper/transformers)
+# Lightweight dependencies for Vercel serverless (ML models disabled with DEMO_MODE=true)
 flask>=3.0.0
+flask-cors>=4.0.0
 werkzeug>=3.0.0
 python-dotenv>=1.0.0
+requests>=2.31.0
+supabase>=2.0.0

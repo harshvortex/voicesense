@@ -29,10 +29,14 @@ logger = logging.getLogger('voicesense')
 app = Flask(__name__, static_folder='static', static_url_path='/static')
 app.config.from_object(Config)
 
-# Session configuration
-app.config['SESSION_TYPE'] = 'filesystem'
+# Session configuration (using secure cookies for serverless)
 app.config['PERMANENT_SESSION_LIFETIME'] = 24 * 60 * 60  # 24 hours
+app.config['SESSION_COOKIE_SECURE'] = True
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.secret_key = os.getenv('FLASK_SECRET_KEY', 'dev-secret-key-change-in-production')
+if not os.getenv('FLASK_SECRET_KEY'):
+    logger.warning('⚠️ Using default FLASK_SECRET_KEY. Set FLASK_SECRET_KEY in production!')
 
 # Enable CORS for service worker and PWA support
 CORS(app, resources={
