@@ -48,7 +48,7 @@ jobs:
 
       - name: Smoke test
         run: |
-          docker run -d --name vs_test -p 5000:5000 voicesense:latest
+          docker run -d --name vs_test -p 8000:8000 voicesense:latest
           sleep 10
-          curl --fail http://localhost:5000/health
+          curl --fail http://localhost:8000/health
           docker stop vs_test

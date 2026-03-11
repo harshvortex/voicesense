@@ -27,10 +27,10 @@ COPY . .
 RUN useradd -m appuser && chown -R appuser /app
 USER appuser
 
-EXPOSE 5000
+EXPOSE 8000
 
 ENV FLASK_ENV=production \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "--timeout", "120", "wsgi:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "2", "--timeout", "120", "wsgi:app"]

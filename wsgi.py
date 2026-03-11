@@ -1,5 +1,10 @@
-"""Gunicorn WSGI entry point."""
+import os
+from dotenv import load_dotenv
 from app import app
 
+# Load .env file
+load_dotenv()
+
 if __name__ == '__main__':
-    app.run()
+    port = int(os.environ.get('PORT', 8000))
+    app.run(host='0.0.0.0', port=port)
